@@ -1,0 +1,8 @@
+
+
+- name: "Installing Let's Encrypt ACME Validation LUA Plugin"
+  unarchive:
+    src: "{{ role_path }}/files/haproxy-acme-validation-plugin.zip"
+    dest: "/etc/haproxy/"
+
+

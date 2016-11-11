@@ -34,6 +34,10 @@ frontend {{ name }}
     acl             {{ acl }}
                 {% endfor %}
             {% endif %}
+            {% if value.letsencrypt is defined and value.letsencrypt %}
+    acl             url_acme_http01 path_beg /.well-known/acme-challenge/
+    http-request    use-service lua.acme-http01 if METH_GET url_acme_http01
+            {% endif %}
             {% if value.http_requests is defined %}
                 {% for http_request in value.http_requests %}
     http-request    {{ http_request }}

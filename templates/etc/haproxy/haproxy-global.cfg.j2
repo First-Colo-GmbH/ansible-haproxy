@@ -62,3 +62,6 @@ global
         {% endfor %}
     {% endfor %}
 {% endif %}
+{% if haproxy_letsencrypt %}
+    lua-load /etc/haproxy/haproxy-acme-validation-plugin/acme-http01-webroot.lua
+{% endif %}
