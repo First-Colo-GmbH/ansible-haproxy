@@ -12,11 +12,6 @@
 - include: install.yml
   tags: [ haproxy, haproxy-install ]
 
-- include: letsencrypt.yml
-  tags: [ haproxy, haproxy-letsencrypt ]
-  when: haproxy_letsencrypt is defined and
-        haproxy_letsencrypt | bool
-
 - include: firewall.yml
   tags: [ haproxy, haproxy-firewall ]
   when: haproxy_firewalld is defined and
@@ -31,3 +26,8 @@
 
 - include: sysctl.yml
   tags: [ haproxy, haproxy-sysctl ]
+
+- include: letsencrypt.yml
+  tags: [ haproxy, haproxy-letsencrypt ]
+  when: haproxy_letsencrypt is defined and haproxy_letsencrypt
+

@@ -1,8 +1,76 @@
 
 
-- name: "Installing Let's Encrypt ACME Validation LUA Plugin"
-  unarchive:
-    src: "{{ role_path }}/files/haproxy-acme-validation-plugin.zip"
-    dest: "/etc/haproxy/"
+- block:
+  - set_fact:
+      letsencrypt_ssl_domains_first: "{{ letsencrypt_ssl_domains | first }}"
 
+  - name: "create required folders"
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - "{{ haproxy_global_chroot }}/.well-known/acme-challenge"
+      - /etc/ssl/letsencrypt
+      - /etc/ssl/private
+      - /etc/ssl/crt
+      - /etc/ssl/csr
+      - /etc/ssl/pem
+
+  - name: "Generate Let's Encrypt Account Key"
+    openssl_privatekey: 
+      path=/etc/ssl/letsencrypt/account.key
+      state=present
+
+  - name: "Generate SSL private Key"
+    openssl_privatekey: 
+      path=/etc/ssl/private/{{ letsencrypt_ssl_domains_first }}.key
+      state=present
+
+  - name: "Generate SSL Certificate Request"
+    openssl_csr: 
+      path=/etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
+      privatekey_path=/etc/ssl/private/{{ letsencrypt_ssl_domains_first }}.key
+      subjectAltName=DNS:{{ letsencrypt_ssl_domains | join(',DNS:') }}
+      countryName={{ letsencrypt_ssl_countryName }}
+      organizationName={{ letsencrypt_ssl_organizationName }}
+      emailAddress={{ letsencrypt_ssl_emailAddress }}
+
+  - name: "Request Let's Encrypt Certificate"
+    letsencrypt:
+      account_email: "{{ letsencrypt_account_email }}"
+      account_key: /etc/ssl/letsencrypt/account.key
+      csr: /etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
+      dest: /etc/ssl/crt/{{ letsencrypt_ssl_domains_first }}.crt
+      acme_directory: "{{ letsencrypt_directory }}"
+    register: letsencrypt_challenge
+
+  - name: "Write challenge data to webdir"
+    copy:
+      dest={{ haproxy_global_chroot }}/{{ letsencrypt_challenge['challenge_data'][item]['http-01']['resource'] }}
+      content={{ letsencrypt_challenge['challenge_data'][item]['http-01']['resource_value'] }}
+    with_items:
+      - "{{ letsencrypt_ssl_domains }}"
+    when: letsencrypt_challenge | changed
+
+  - name: "Install Let's Encrypt Certificate"
+    letsencrypt:
+      account_email: "{{ letsencrypt_account_email }}"
+      account_key: /etc/ssl/letsencrypt/account.key
+      csr: /etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
+      dest: /etc/ssl/crt/{{ letsencrypt_ssl_domains_first }}.crt
+      data: "{{ letsencrypt_challenge }}"
+      acme_directory: "{{ letsencrypt_directory }}"
+
+  - name: "Remote callenge data from webdir"
+    file: path={{ haproxy_global_chroot }}/{{ letsencrypt_challenge['challenge_data'][item]['http-01']['resource'] }} state=absent
+    with_items:
+      - "{{ letsencrypt_ssl_domains }}"
+    when: letsencrypt_challenge | changed
+
+  - name: "Generate a PEM file from .key and .crt"
+    shell: cat crt/{{ letsencrypt_ssl_domains_first }}.crt private/{{ letsencrypt_ssl_domains_first }}.key > pem/{{ letsencrypt_ssl_domains_first }}.pem
+    args:
+      chdir: "/etc/ssl/"
+    when: letsencrypt_challenge | changed
+    notify: reload haproxy
 

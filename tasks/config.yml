@@ -1,5 +1,14 @@
 ---
 # file: roles/haproxy/tasks/config.yml
+
+#- name: "Verify SSL Ceritificates provided in binds_ssl"
+#  stat:
+#    path: {{ item }}
+#  debug: msg={{ item }}
+#  with_items: '{{ testvar | regex_findall("crt (\/[\w\/]+)") }}'
+#  register: stat_result
+
+
 - name: Configuring HAproxy
   template:
     src=etc/haproxy/haproxy.cfg.j2

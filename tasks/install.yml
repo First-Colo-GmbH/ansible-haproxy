@@ -5,6 +5,12 @@
 - include: install-Generic.yml
   when: ansible_os_family != 'Debian'
 
+- name: "Installing Let's Encrypt ACME Validation LUA Plugin"
+  unarchive:
+    src: "{{ role_path }}/files/haproxy-acme-validation-plugin.zip"
+    dest: "/etc/haproxy/"
+  when: haproxy_letsencrypt is defined and haproxy_letsencrypt
+
 - name: Enabling and starting HAproxy service
   service:
     name=haproxy

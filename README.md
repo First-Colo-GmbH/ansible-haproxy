@@ -122,9 +122,6 @@ haproxy_ssl_certificate: /etc/ssl/uoi.io/uoi.io.pem
 haproxy_ssl_options: no-sslv3 no-tls-tickets force-tlsv12
 haproxy_ssl_ciphers: AES128+EECDH:AES128+EDH
 haproxy_ssl: 'ssl crt {{ haproxy_ssl_certificate }} ciphers {{ haproxy_ssl_ciphers }} {{ haproxy_ssl_options }}'
-
-# Let's Encrypt
-haproxy_letsencrypt: false
 ```
 
 Dependencies
@@ -146,7 +143,6 @@ haproxy_frontend:
       reqadds:
         - X-Forwarded-Proto:\ https
       default_backend: dashboard_backend
-	  letsencrypt: true
       logs:
         - 127.0.0.1 local0 debug
       acls:
@@ -189,7 +185,6 @@ haproxy_listen:
       binds_ssl:
         - :443 ssl crt /etc/ssl/uoi.io/uoi.io.pem no-sslv3
       options: [ tcpka, httpchk, tcplog ]
-	  letsencrypt: true
       http-check: GET /auth/login
       cookie: SERVERID insert indirect nocache
       timeouts:

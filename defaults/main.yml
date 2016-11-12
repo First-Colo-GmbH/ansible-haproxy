@@ -84,6 +84,12 @@ haproxy_ssl: 'ssl crt {{ haproxy_ssl_certificate }} ciphers {{ haproxy_ssl_ciphe
 
 # Let's Encrypt
 haproxy_letsencrypt: false
+letsencrypt_ssl_countryName: "DE"
+letsencrypt_ssl_domains: {}
+letsencrypt_ssl_emailAddress: "admin@domain.tdl"
+letsencrypt_ssl_organizationName: "My Enterprise"
+letsencrypt_account_email: "admin@domain.tdl"
+letsencrypt_directory: "https://acme-v01.api.letsencrypt.org/directory"
 
 # Frontend
 haproxy_frontend: []
