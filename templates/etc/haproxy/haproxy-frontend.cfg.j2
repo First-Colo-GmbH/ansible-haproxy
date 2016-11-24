@@ -53,14 +53,24 @@ frontend {{ name }}
     reqadd          {{ reqadd }}
                 {% endfor %}
             {% endif %}
-            {% if value.use_backends is defined %}
-                {% for use_backend in value.use_backends %}
-    use_backend     {{ use_backend }}
+            {% if value.http_responses is defined %}
+                {% for http_response in value.http_responses %}
+    http-response   {{ http_response }}
+                {% endfor %}
+            {% endif %}
+            {% if value.rspadds is defined %}
+                {% for rspadd in value.rspadds %}
+    rspadd          "{{ rspadd }}"
                 {% endfor %}
             {% endif %}
             {% if value.redirects is defined %}
                 {% for redirect in value.redirects %}
     redirect        {{ redirect }}
+                {% endfor %}
+            {% endif %}
+            {% if value.use_backends is defined %}
+                {% for use_backend in value.use_backends %}
+    use_backend     {{ use_backend }}
                 {% endfor %}
             {% endif %}
             {% if value.logs is defined %}

@@ -26,6 +26,11 @@
       path=/etc/ssl/private/{{ letsencrypt_ssl_domains_first }}.key
       state=present
 
+  - name: "Download Let's Encrypt Chain file"
+    get_url:
+      url: https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem
+      dest: /etc/ssl/letsencrypt/lets-encrypt-x3-cross-signed.pem
+
   - name: "Generate SSL Certificate Request"
     openssl_csr: 
       path=/etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
@@ -67,8 +72,8 @@
       - "{{ letsencrypt_ssl_domains }}"
     when: letsencrypt_challenge | changed
 
-  - name: "Generate a PEM file from .key and .crt"
-    shell: cat crt/{{ letsencrypt_ssl_domains_first }}.crt private/{{ letsencrypt_ssl_domains_first }}.key > pem/{{ letsencrypt_ssl_domains_first }}.pem
+  - name: "Generate a PEM file from .key and .crt and chain file"
+    shell: cat crt/{{ letsencrypt_ssl_domains_first }}.crt private/{{ letsencrypt_ssl_domains_first }}.key letsencrypt/lets-encrypt-x3-cross-signed.pem > pem/{{ letsencrypt_ssl_domains_first }}.pem
     args:
       chdir: "/etc/ssl/"
     when: letsencrypt_challenge | changed

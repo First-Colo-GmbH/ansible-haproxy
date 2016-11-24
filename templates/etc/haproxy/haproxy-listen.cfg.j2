@@ -57,6 +57,11 @@ listen {{ name }}
     http-request    {{ http_request }}
                 {% endfor %}
             {% endif %}
+            {% if value.http_responses is defined %}
+                {% for http_response in value.http_responses %}
+    http-response   {{ http_response }}
+                {% endfor %}
+            {% endif %}
             {% if value.tcp_requests is defined %}
                 {% for tcp_request in value.tcp_requests %}
     tcp-request     {{ tcp_request }}
