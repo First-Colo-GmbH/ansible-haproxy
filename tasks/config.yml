@@ -1,9 +1,16 @@
 ---
 # file: roles/haproxy/tasks/config.yml
 
+- name: "Generate DH4096 file"
+  shell: openssl dhparam -out /etc/ssl/dh4096.pem 4096
+  args:
+    creates: /etc/ssl/dh4096.pem
+  when: haproxy_ssl_generate_dh4096 == True
+
 - name: Configuring HAproxy
   template:
     src=etc/haproxy/haproxy.cfg.j2
     dest=/etc/haproxy/haproxy.cfg
     validate='haproxy -f %s -c'
   notify: reload haproxy
+
