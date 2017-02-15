@@ -1,0 +1,3 @@
+{% for domain in letsencrypt_ssl_domains %}
+/etc/ssl/pem/{{ domain }}.pem {{ domain }}
+{% endfor %}

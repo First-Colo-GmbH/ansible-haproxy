@@ -1,9 +1,6 @@
 
 
 - block:
-  - set_fact:
-      letsencrypt_ssl_domains_first: "{{ letsencrypt_ssl_domains | first }}"
-
   - name: "create required folders"
     file:
       path: "{{ item }}"
@@ -21,61 +18,101 @@
       path=/etc/ssl/letsencrypt/account.key
       state=present
 
+  - name: "Search for SSL .key files" 
+    stat: 
+      path: "/etc/ssl/private/{{ item }}.key"
+    with_items:
+      - "{{ letsencrypt_ssl_domains }}"
+    register: stat_keys
+
   - name: "Generate SSL private Key"
     openssl_privatekey: 
-      path=/etc/ssl/private/{{ letsencrypt_ssl_domains_first }}.key
+      path=/etc/ssl/private/{{ item.item }}.key
       state=present
+    with_items: "{{ stat_keys.results }}"
+    when: not item.stat.exists
+
+  - name: "Search for SSL .csr files"
+    stat: 
+      path: "/etc/ssl/csr/{{ item }}.csr"
+    with_items:
+      - "{{ letsencrypt_ssl_domains }}"
+    register: stat_csr
+
+  - name: "Generate SSL Certificate Requests"
+    openssl_csr: 
+      commonName={{ item.item }}
+      path=/etc/ssl/csr/{{ item.item }}.csr
+      privatekey_path=/etc/ssl/private/{{ item.item }}.key
+      countryName={{ letsencrypt_ssl_countryName }}
+      organizationName={{ letsencrypt_ssl_organizationName }}
+      emailAddress={{ letsencrypt_ssl_emailAddress }}
+    with_items: "{{ stat_csr.results }}"
+    when: not item.stat.exists
+
+  - name: "Request Let's Encrypt Certificate from {{ letsencrypt_directory }}"
+    letsencrypt:
+      account_email: "{{ letsencrypt_account_email }}"
+      account_key: /etc/ssl/letsencrypt/account.key
+      csr: /etc/ssl/csr/{{ item }}.csr
+      dest: /etc/ssl/crt/{{ item }}.crt
+      acme_directory: "{{ letsencrypt_directory }}"
+    with_items:
+      - "{{ letsencrypt_ssl_domains }}"
+    register: letsencrypt_challenge
+
+  - name: "Write challenge data to webdir"
+    copy:
+      dest={{ haproxy_global_chroot }}/{{ item['challenge_data'][item.item]['http-01']['resource'] }}
+      content={{ item['challenge_data'][item.item]['http-01']['resource_value'] }}
+    with_items: "{{ letsencrypt_challenge.results }}"
+    when: item.changed is defined and item.changed == True
+
+  - name: "Install Let's Encrypt Certificate from {{ letsencrypt_directory }}"
+    letsencrypt:
+      account_email: "{{ letsencrypt_account_email }}"
+      account_key: /etc/ssl/letsencrypt/account.key
+      csr: /etc/ssl/csr/{{ item.item }}.csr
+      dest: /etc/ssl/crt/{{ item.item }}.crt
+      data: "{{ item }}"
+      acme_directory: "{{ letsencrypt_directory }}"
+    with_items: "{{ letsencrypt_challenge.results }}"
+
+  - name: "Remove callenge data from webdir"
+    file: path={{ haproxy_global_chroot }}/{{ item['challenge_data'][item.item]['http-01']['resource'] }} state=absent
+    with_items: "{{ letsencrypt_challenge.results }}"
+    when: item.changed is defined and item.changed == True
 
   - name: "Download Let's Encrypt Chain file"
     get_url:
       url: https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem
       dest: /etc/ssl/letsencrypt/lets-encrypt-x3-cross-signed.pem
 
-  - name: "Generate SSL Certificate Request"
-    openssl_csr: 
-      path=/etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
-      privatekey_path=/etc/ssl/private/{{ letsencrypt_ssl_domains_first }}.key
-      subjectAltName=DNS:{{ letsencrypt_ssl_domains | join(',DNS:') }}
-      countryName={{ letsencrypt_ssl_countryName }}
-      organizationName={{ letsencrypt_ssl_organizationName }}
-      emailAddress={{ letsencrypt_ssl_emailAddress }}
-
-  - name: "Request Let's Encrypt Certificate"
-    letsencrypt:
-      account_email: "{{ letsencrypt_account_email }}"
-      account_key: /etc/ssl/letsencrypt/account.key
-      csr: /etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
-      dest: /etc/ssl/crt/{{ letsencrypt_ssl_domains_first }}.crt
-      acme_directory: "{{ letsencrypt_directory }}"
-    register: letsencrypt_challenge
-
-  - name: "Write challenge data to webdir"
-    copy:
-      dest={{ haproxy_global_chroot }}/{{ letsencrypt_challenge['challenge_data'][item]['http-01']['resource'] }}
-      content={{ letsencrypt_challenge['challenge_data'][item]['http-01']['resource_value'] }}
-    with_items:
-      - "{{ letsencrypt_ssl_domains }}"
-    when: letsencrypt_challenge | changed
-
-  - name: "Install Let's Encrypt Certificate"
-    letsencrypt:
-      account_email: "{{ letsencrypt_account_email }}"
-      account_key: /etc/ssl/letsencrypt/account.key
-      csr: /etc/ssl/csr/{{ letsencrypt_ssl_domains_first }}.csr
-      dest: /etc/ssl/crt/{{ letsencrypt_ssl_domains_first }}.crt
-      data: "{{ letsencrypt_challenge }}"
-      acme_directory: "{{ letsencrypt_directory }}"
-
-  - name: "Remote callenge data from webdir"
-    file: path={{ haproxy_global_chroot }}/{{ letsencrypt_challenge['challenge_data'][item]['http-01']['resource'] }} state=absent
-    with_items:
-      - "{{ letsencrypt_ssl_domains }}"
-    when: letsencrypt_challenge | changed
-
   - name: "Generate a PEM file from .key and .crt and chain file"
-    shell: cat crt/{{ letsencrypt_ssl_domains_first }}.crt private/{{ letsencrypt_ssl_domains_first }}.key letsencrypt/lets-encrypt-x3-cross-signed.pem > pem/{{ letsencrypt_ssl_domains_first }}.pem
+    shell: cat crt/{{ item }}.crt private/{{ item }}.key letsencrypt/lets-encrypt-x3-cross-signed.pem > pem/{{ item }}.pem
     args:
       chdir: "/etc/ssl/"
-    when: letsencrypt_challenge | changed
+    with_items:
+      - "{{ letsencrypt_ssl_domains }}"
     notify: reload haproxy
+
+  - name: "Generate a crt-list.txt file for SSL SNI"
+    template:
+      src: etc/haproxy/crt-list.txt.j2
+      dest: /etc/haproxy/crt-list.txt
+
+  - name: "Create bind_ssl variable for haproxy.cfg"
+    set_fact:
+      letsencrypt_bind_ssl: "ssl crt-list /etc/haproxy/crt-list.txt"
+#      letsencrypt_bind_ssl: "ssl crt /etc/ssl/pem/{{ letsencrypt_ssl_domains | join('.pem ssl crt /etc/ssl/pem/')  }}.pem"
+
+  - name: "Configuring HAproxy with Let's Encrypt SSL"
+    template:
+      src=etc/haproxy/haproxy.cfg.j2
+      dest=/etc/haproxy/haproxy.cfg
+      validate='haproxy -f %s -c'
+    notify: reload haproxy
+
+
+
 

@@ -1,6 +1,22 @@
 ---
 # file: roles/haproxy/tasks/config.yml
 
+- name: "Verify ssl certificate existence"
+  stat:
+    path: "{{ haproxy_ssl_certificate }}"
+  register: stat_ssl_crt
+
+- name: "Generate a PEM file from .key and .crt for snakeoil"
+  shell: cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key > /etc/ssl/pem/ssl-cert-snakeoil.pem
+  args:
+    creates: /etc/ssl/pem/ssl-cert-snakeoil.pem
+  when: stat_ssl_crt.stat.exists == False
+
+- name: "Correct missing SSL Zertificate and use Snakeoil"
+  set_fact:
+    haproxy_ssl_certificate: "/etc/ssl/pem/ssl-cert-snakeoil.pem"
+  when: stat_ssl_crt.stat.exists == False
+
 - name: "Generate DH4096 file"
   shell: openssl dhparam -out /etc/ssl/dh4096.pem 4096
   args:

@@ -8,6 +8,7 @@
     sysctl_set=yes
     reload=yes
     state=present
+  async: 1
   notify: restart haproxy
   when: haproxy_bind_nonlocal_ip is defined and
         haproxy_bind_nonlocal_ip | bool
@@ -20,5 +21,6 @@
     sysctl_set=yes
     reload=yes
     state=present
+  async: 1
   when: haproxy_ip_forward is defined and
         haproxy_ip_forward | bool
