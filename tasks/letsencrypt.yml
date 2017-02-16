@@ -12,11 +12,13 @@
       - /etc/ssl/crt
       - /etc/ssl/csr
       - /etc/ssl/pem
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Generate Let's Encrypt Account Key"
     openssl_privatekey: 
       path=/etc/ssl/letsencrypt/account.key
       state=present
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Search for SSL .key files" 
     stat: 
@@ -24,6 +26,7 @@
     with_items:
       - "{{ letsencrypt_ssl_domains }}"
     register: stat_keys
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Generate SSL private Key"
     openssl_privatekey: 
@@ -31,6 +34,7 @@
       state=present
     with_items: "{{ stat_keys.results }}"
     when: not item.stat.exists
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Search for SSL .csr files"
     stat: 
@@ -38,6 +42,7 @@
     with_items:
       - "{{ letsencrypt_ssl_domains }}"
     register: stat_csr
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Generate SSL Certificate Requests"
     openssl_csr: 
@@ -49,6 +54,7 @@
       emailAddress={{ letsencrypt_ssl_emailAddress }}
     with_items: "{{ stat_csr.results }}"
     when: not item.stat.exists
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Request Let's Encrypt Certificate from {{ letsencrypt_directory }}"
     letsencrypt:
@@ -60,6 +66,7 @@
     with_items:
       - "{{ letsencrypt_ssl_domains }}"
     register: letsencrypt_challenge
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Write challenge data to webdir"
     copy:
@@ -67,6 +74,7 @@
       content={{ item['challenge_data'][item.item]['http-01']['resource_value'] }}
     with_items: "{{ letsencrypt_challenge.results }}"
     when: item.changed is defined and item.changed == True
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Install Let's Encrypt Certificate from {{ letsencrypt_directory }}"
     letsencrypt:
@@ -77,16 +85,19 @@
       data: "{{ item }}"
       acme_directory: "{{ letsencrypt_directory }}"
     with_items: "{{ letsencrypt_challenge.results }}"
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Remove callenge data from webdir"
     file: path={{ haproxy_global_chroot }}/{{ item['challenge_data'][item.item]['http-01']['resource'] }} state=absent
     with_items: "{{ letsencrypt_challenge.results }}"
     when: item.changed is defined and item.changed == True
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Download Let's Encrypt Chain file"
     get_url:
       url: https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem
       dest: /etc/ssl/letsencrypt/lets-encrypt-x3-cross-signed.pem
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Generate a PEM file from .key and .crt and chain file"
     shell: cat crt/{{ item }}.crt private/{{ item }}.key letsencrypt/lets-encrypt-x3-cross-signed.pem > pem/{{ item }}.pem
@@ -95,6 +106,7 @@
     with_items:
       - "{{ letsencrypt_ssl_domains }}"
     notify: reload haproxy
+    tags: [ haproxy-letsencrypt ]
 
   - name: "Generate a crt-list.txt file for SSL SNI"
     template:
@@ -104,7 +116,6 @@
   - name: "Create bind_ssl variable for haproxy.cfg"
     set_fact:
       letsencrypt_bind_ssl: "ssl crt-list /etc/haproxy/crt-list.txt"
-#      letsencrypt_bind_ssl: "ssl crt /etc/ssl/pem/{{ letsencrypt_ssl_domains | join('.pem ssl crt /etc/ssl/pem/')  }}.pem"
 
   - name: "Configuring HAproxy with Let's Encrypt SSL"
     template:
@@ -112,7 +123,4 @@
       dest=/etc/haproxy/haproxy.cfg
       validate='haproxy -f %s -c'
     notify: reload haproxy
-
-
-
 
