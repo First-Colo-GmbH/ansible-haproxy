@@ -253,6 +253,6 @@ Apache
 Author Information
 ------------------
 
-This role was created in 2016 by Gaëtan Trellu (goldyfruit).
-[Martin Verges](https://github.com/MartinVerges) added Let's Encrypt Support and some improvements.
+* This role was created in 2016 by Gaëtan Trellu (goldyfruit).
+* [Martin Verges](https://github.com/MartinVerges) added Let's Encrypt Support and some improvements.
 
