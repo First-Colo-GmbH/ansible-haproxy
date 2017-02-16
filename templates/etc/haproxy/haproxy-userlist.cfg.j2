@@ -1,0 +1,26 @@
+{% if haproxy_userlist %}
+##########################
+#       USERLISTS        #
+##########################
+    {% for dict_item in haproxy_userlist %}
+        {% for listname, value in dict_item.items() %}
+userlist {{ listname }}
+            {% if value.groups is defined %}
+                {% for group in value.groups %}
+                    {% for groupname, users in group.items() %}
+    group	{{ '{:15}'.format(groupname) }} {% if users|length > 0 -%}users {{ users | join(',') }}
+						{% endif %}
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+            {% if value.users is defined %}
+                {% for user in value.users %}
+    user	{{ '{:15}'.format(user.name) }} {% if user.insecure_password is defined -%}insecure-password {{ user.insecure_password }}
+											{%- elif user.password is defined -%}password {{ user.password }}
+											{% endif %}{% if user.groups is defined %} groups {{ user.groups | join(',') }}{% endif %}
+
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+{% endif %}

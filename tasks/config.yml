@@ -5,23 +5,27 @@
   stat:
     path: "{{ haproxy_ssl_certificate }}"
   register: stat_ssl_crt
+  tags: [ haproxy-letsencrypt ]
 
 - name: "Generate a PEM file from .key and .crt for snakeoil"
   shell: cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key > /etc/ssl/pem/ssl-cert-snakeoil.pem
   args:
     creates: /etc/ssl/pem/ssl-cert-snakeoil.pem
   when: stat_ssl_crt.stat.exists == False
+  tags: [ haproxy-letsencrypt ]
 
 - name: "Correct missing SSL Zertificate and use Snakeoil"
   set_fact:
     haproxy_ssl_certificate: "/etc/ssl/pem/ssl-cert-snakeoil.pem"
   when: stat_ssl_crt.stat.exists == False
+  tags: [ haproxy-letsencrypt ]
 
 - name: "Generate DH4096 file"
   shell: openssl dhparam -out /etc/ssl/dh4096.pem 4096
   args:
     creates: /etc/ssl/dh4096.pem
   when: haproxy_ssl_generate_dh4096 == True
+  tags: [ haproxy-letsencrypt ]
 
 - name: Configuring HAproxy
   template:

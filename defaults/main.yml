@@ -93,6 +93,9 @@ letsencrypt_ssl_organizationName: "My Enterprise"
 letsencrypt_account_email: "admin@domain.tdl"
 letsencrypt_directory: "https://acme-v01.api.letsencrypt.org/directory"
 
+# Userlist
+haproxy_userlist: []
+
 # Frontend
 haproxy_frontend: []
 

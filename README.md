@@ -222,6 +222,28 @@ haproxy_peer:
         - lb224 10.0.0.224:1024
         - lb225 10.0.0.225:1024
 ```
+```
+haproxy_userlist:
+  - auth_list1:
+     groups:
+      - myfirstgroup:
+         - "firstuser"
+         - "seconduser"
+      - mysecondgroup:
+         - "thirduser"
+     users:
+      - name: "firstuser"
+        insecure_password: "veryinsecure"
+      - name: "seconduser"
+        insecure_password: "veryinsecure"
+      - name: "thirduser"
+        password: "$6$k6y3o...<crypt secure>...Rv6J.C0/D7cV91"
+      - name: "fourthuser"
+        password: "$6$k6y3o...<crypt secure>...Rv6J.C0/D7cV91"
+        groups: 
+          - "myfirstgroup"
+          - "mysecondgroup"
+```
 
 License
 -------
@@ -232,3 +254,5 @@ Author Information
 ------------------
 
 This role was created in 2016 by Gaëtan Trellu (goldyfruit).
+[Martin Verges](https://github.com/MartinVerges) added Let's Encrypt Support and some improvements.
+
