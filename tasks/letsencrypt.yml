@@ -1,6 +1,12 @@
 
 
 - block:
+  - name: "install python-openssl"
+    apt:
+      name: "python-openssl"
+      state: "latest
+    when: ansible_os_family == 'Debian'
+
   - name: "create required folders"
     file:
       path: "{{ item }}"

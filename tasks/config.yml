@@ -12,6 +12,7 @@
     apt:
       name: ssl-cert
       state: latest
+    when: ansible_os_family == 'Debian'
     tags: [ haproxy-letsencrypt ]
 
   - name: "Generate snakeoil certificate"
