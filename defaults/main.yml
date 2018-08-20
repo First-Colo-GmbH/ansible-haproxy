@@ -39,8 +39,8 @@ haproxy_global_cpu_maps:
 haproxy_global_tunes:
   - tune.ssl.default-dh-param: 2048
 
-
-haproxy_default_log:
+# Default
+haproxy_default_logs:
   - global
 haproxy_default_mode:
 haproxy_default_maxconn: 4000
