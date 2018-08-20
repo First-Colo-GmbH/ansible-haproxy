@@ -92,6 +92,7 @@ letsencrypt_ssl_emailAddress: "admin@domain.tdl"
 letsencrypt_ssl_organizationName: "My Enterprise"
 letsencrypt_account_email: "admin@domain.tdl"
 letsencrypt_directory: "https://acme-v01.api.letsencrypt.org/directory"
+letsencrypt_remaining_days: 14
 
 # Userlist
 haproxy_userlist: []

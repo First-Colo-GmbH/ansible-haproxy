@@ -63,12 +63,13 @@
     tags: [ haproxy-letsencrypt ]
 
   - name: "Request Let's Encrypt Certificate from {{ letsencrypt_directory }}"
-    letsencrypt:
+    acme_certificate:
       account_email: "{{ letsencrypt_account_email }}"
       account_key: /etc/ssl/letsencrypt/account.key
       csr: /etc/ssl/csr/{{ item }}.csr
       dest: /etc/ssl/crt/{{ item }}.crt
       acme_directory: "{{ letsencrypt_directory }}"
+      remaining_days: "{{ letsencrypt_remaining_days }}"
     with_items:
       - "{{ letsencrypt_ssl_domains }}"
     register: letsencrypt_challenge
@@ -83,13 +84,14 @@
     tags: [ haproxy-letsencrypt ]
 
   - name: "Install Let's Encrypt Certificate from {{ letsencrypt_directory }}"
-    letsencrypt:
+    acme_certificate:
       account_email: "{{ letsencrypt_account_email }}"
       account_key: /etc/ssl/letsencrypt/account.key
       csr: /etc/ssl/csr/{{ item.item }}.csr
       dest: /etc/ssl/crt/{{ item.item }}.crt
       data: "{{ item }}"
       acme_directory: "{{ letsencrypt_directory }}"
+      remaining_days: "{{ letsencrypt_remaining_days }}"
     with_items: "{{ letsencrypt_challenge.results }}"
     tags: [ haproxy-letsencrypt ]
 

@@ -73,6 +73,9 @@ frontend {{ name }}
     redirect        {{ redirect }}
                 {% endfor %}
             {% endif %}
+            {% if value.letsencrypt is defined and value.letsencrypt %}
+    use_backend     be_dead_for_acme_http01 if url_acme_http01
+            {% endif %}
             {% if value.use_backends is defined %}
                 {% for use_backend in value.use_backends %}
     use_backend     {{ use_backend }}
