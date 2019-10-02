@@ -10,7 +10,7 @@ This role provides support for the installation of HAproxy on current distributi
  - RedHat **7.x**
  - Fedora **29**
  - Ubuntu **14.xx** / **15.xx** / **16.xx** / **18.04**
- - Debian **7.x** / **8.x** / **9.x**
+ - Debian **7.x** / **8.x** / **9.x** / **10.x**
 
 The role allows you to configure multiple sections of HAproxy:
  

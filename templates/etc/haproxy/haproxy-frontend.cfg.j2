@@ -74,6 +74,7 @@ frontend {{ name }}
             {% if value.rspadds is defined %}
                 {% for rspadd in value.rspadds %}
     rspadd          "{{ rspadd }}"
+                {% endfor %}
             {% endif %}
             {% if value.rate_limit_sessions is defined %}
     rate-limit      sessions {{ value.rate_limit_sessions }}
