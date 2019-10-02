@@ -43,6 +43,9 @@ frontend {{ name }}
     acl             url_acme_http01 path_beg /.well-known/acme-challenge/
     http-request    use-service lua.acme-http01 if METH_GET url_acme_http01
             {% endif %}
+            {% if value.monitor_uri is defined %}
+    monitor-uri     {{ value.monitor_uri }}
+            {% endif %}
             {% if value.http_requests is defined %}
                 {% for http_request in value.http_requests %}
     http-request    {{ http_request }}
@@ -71,6 +74,13 @@ frontend {{ name }}
             {% if value.rspadds is defined %}
                 {% for rspadd in value.rspadds %}
     rspadd          "{{ rspadd }}"
+            {% endif %}
+            {% if value.rate_limit_sessions is defined %}
+    rate-limit      sessions {{ value.rate_limit_sessions }}
+            {% endif %}
+            {% if value.use_backends is defined %}
+                {% for use_backend in value.use_backends %}
+    use_backend     {{ use_backend }}
                 {% endfor %}
             {% endif %}
             {% if value.redirects is defined %}

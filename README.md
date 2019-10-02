@@ -8,7 +8,8 @@ This role provides support for the installation of HAproxy on current distributi
 
  - CentOS **7.x**
  - RedHat **7.x**
- - Ubuntu **14.xx** / **15.xx** / **16.xx**
+ - Fedora **29**
+ - Ubuntu **14.xx** / **15.xx** / **16.xx** / **18.04**
  - Debian **7.x** / **8.x** / **9.x**
 
 The role allows you to configure multiple sections of HAproxy:
@@ -103,6 +104,8 @@ haproxy_default_balance:
 haproxy_default_errorfiles:
   - 400 {{ haproxy_errors_directory }}/400.http
   - 403 {{ haproxy_errors_directory }}/403.http
+haproxy_default_http_check:
+haproxy_default_monitor_uri:
 
 # Stats
 haproxy_stats: true
@@ -152,8 +155,9 @@ haproxy_frontend:
         - 1
       use_backends:
         - static if url_static
-      capture: request header Host len 64
-      capture: request header X-Forwarded-For len 64
+      capture:
+        - request header Host len 64
+        - request header X-Forwarded-For len 64
 ```
 ```
 # Backend
@@ -189,7 +193,8 @@ haproxy_listen:
       options: [ tcpka, httpchk, tcplog ]
       http-check: GET /auth/login
       cookie: SERVERID insert indirect nocache
-      capture: cookie SERVERID len 32
+      capture:
+        - cookie SERVERID len 32
       timeouts:
         - client 90m
         - server 90m
@@ -243,6 +248,20 @@ haproxy_userlist:
         groups: 
           - "myfirstgroup"
           - "mysecondgroup"
+```
+
+Testing
+-------
+
+This role is using [ansible molecule](https://molecule.readthedocs.io/).
+You'll just need to install molecule via pip and run it.
+Currently the molecule configuration is based on the docker driver.
+
+```console
+$ apt/yum install docker
+$ systemctl start docker
+$ pip install docker molecule
+$ molecule test
 ```
 
 License

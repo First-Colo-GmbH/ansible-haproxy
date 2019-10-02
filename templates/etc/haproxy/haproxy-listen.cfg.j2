@@ -57,6 +57,15 @@ listen {{ name }}
     acl             url_acme_http01 path_beg /.well-known/acme-challenge/
     http-request    use-service lua.acme-http01 if METH_GET url_acme_http01
             {% endif %}
+            {% if value.fullconn is defined %}
+    fullconn        {{ value.fullconn }}
+            {% endif %}
+            {% if value.monitor is defined %}
+    monitor         {{ value.monitor }}
+            {% endif %}
+            {% if value.monitor_uri is defined %}
+    monitor-uri     {{ value.monitor_uri }}
+            {% endif %}
             {% if value.http_requests is defined %}
                 {% for http_request in value.http_requests %}
     http-request    {{ http_request }}
@@ -82,10 +91,19 @@ listen {{ name }}
     tcp-check       {{ tcp_check }}
                 {% endfor %}
             {% endif %}
+            {% if value.persist is defined %}
+    persist         {{ value.persist }}
+            {% endif %}
+            {% if value.rate_limit_sessions is defined %}
+    rate-limit      sessions {{ value.rate_limit_sessions }}
+            {% endif %}
             {% if value.redirects is defined %}
                 {% for redirect in value.redirects %}
     redirect        {{ redirect }}
                 {% endfor %}
+            {% endif %}
+            {% if value.reqrep is defined %}
+    reqrep          {{ value.reqrep }}
             {% endif %}
             {% if value.retries is defined %}
     retires         {{ value.retries }}
@@ -101,6 +119,11 @@ listen {{ name }}
             {% for srv in value.servers %}
     server          {{ srv }}
             {% endfor %}
+            {% if value.use_backends is defined %}
+                {% for use_backend in value.use_backends %}
+    use_backend     {{ use_backend }}
+                {% endfor %}
+            {% endif %}
         {% endfor %}
 
     {% endfor %}
