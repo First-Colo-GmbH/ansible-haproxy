@@ -5,7 +5,7 @@
   stat:
     path: "{{ haproxy_ssl_certificate }}"
   register: stat_ssl_crt
-  tags: [ haproxy-letsencrypt ]
+  tags: [ haproxy-certbot ]
 
 - block:
   - name: "Install ssl-cert package"
@@ -13,31 +13,31 @@
       name: ssl-cert
       state: latest
     when: ansible_os_family == 'Debian'
-    tags: [ haproxy-letsencrypt ]
+    tags: [ haproxy-certbot ]
 
   - name: "Generate snakeoil certificate"
     shell: /usr/sbin/make-ssl-cert generate-default-snakeoil 
     args:
       creates: /etc/ssl/certs/ssl-cert-snakeoil.pem
-    tags: [ haproxy-letsencrypt ]
+    tags: [ haproxy-certbot ]
 
   - name: "Create PEM directory"
     file:
       path: /etc/ssl/pem
       state: directory
       mode: 0755
-    tags: [ haproxy-letsencrypt ]
+    tags: [ haproxy-certbot ]
 
   - name: "Generate a PEM file from .key and .crt for snakeoil"
     shell: cat /etc/ssl/certs/ssl-cert-snakeoil.pem /etc/ssl/private/ssl-cert-snakeoil.key > /etc/ssl/pem/ssl-cert-snakeoil.pem
     args:
       creates: /etc/ssl/pem/ssl-cert-snakeoil.pem
-    tags: [ haproxy-letsencrypt ]
+    tags: [ haproxy-certbot ]
 
   - name: "Correct missing SSL Zertificate and use Snakeoil"
     set_fact:
       haproxy_ssl_certificate: "/etc/ssl/pem/ssl-cert-snakeoil.pem"
-    tags: [ haproxy-letsencrypt ]
+    tags: [ haproxy-certbot ]
 
   when: stat_ssl_crt.stat.exists == False
 
@@ -46,12 +46,12 @@
   args:
     creates: /etc/ssl/dh4096.pem
   when: haproxy_ssl_generate_dh4096 == True
-  tags: [ haproxy-letsencrypt ]
+  tags: [ haproxy-certbot ]
 
 - name: Configuring HAproxy
   template:
     src: etc/haproxy/haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
-    validate: 'haproxy -f %s -c'
+#    validate: 'haproxy -f %s -c'
   notify: reload haproxy
 

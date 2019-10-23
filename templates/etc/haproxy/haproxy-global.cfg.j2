@@ -62,9 +62,6 @@ global
         {% endfor %}
     {% endfor %}
 {% endif %}
-{% if haproxy_letsencrypt %}
-    lua-load /etc/haproxy/haproxy-acme-validation-plugin/acme-http01-webroot.lua
-{% endif %}
 {% if haproxy_ssl_generate_dh4096 %}
     ssl-dh-param-file /etc/ssl/dh4096.pem
 {% endif %}

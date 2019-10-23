@@ -88,14 +88,12 @@ haproxy_ssl: 'ssl crt {{ haproxy_ssl_certificate }}'
 haproxy_ssl_generate_dh4096: true
 
 # Let's Encrypt
-haproxy_letsencrypt: false
-letsencrypt_ssl_countryName: "DE"
-letsencrypt_ssl_domains: {}
-letsencrypt_ssl_emailAddress: "admin@domain.tdl"
-letsencrypt_ssl_organizationName: "My Enterprise"
-letsencrypt_account_email: "admin@domain.tdl"
-letsencrypt_directory: "https://acme-v01.api.letsencrypt.org/directory"
-letsencrypt_remaining_days: 14
+haproxy_certbot: false
+certbot_ssl_domains: {}
+certbot_account_email: "admin@domain.tdl"
+certbot_directory: "https://acme-staging-v02.api.letsencrypt.org/directory" 
+#certbot_directory: "https://acme-v02.api.letsencrypt.org/directory"
+certbot_remaining_days: 14
 
 # Userlist
 haproxy_userlist: []

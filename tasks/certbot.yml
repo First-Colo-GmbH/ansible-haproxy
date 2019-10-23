@@ -1,0 +1,82 @@
+
+
+- block:
+  - name: "create required folders"
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - /etc/ssl/pem
+    tags: [ haproxy-certbot ]
+
+  - name: "Install python3-pip"
+    apt:
+      name: python3-pip
+      state: latest
+    tags: [ haproxy-certbot, haproxy-install ]
+
+  - name: "Install certbot + dns plugin"
+    pip:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - certbot
+      - certbot-dns-powerdns
+    tags: [ haproxy-certbot, haproxy-install ]
+
+  - name: "Configure PowerDNS credentials"
+    blockinfile:
+      path: /etc/letsencrypt/pdns-credentials.ini
+      mode: 0600
+      create: yes
+      block: |
+        certbot_dns_powerdns:dns_powerdns_api_url = {{ certbot_dns_api_url }}
+        certbot_dns_powerdns:dns_powerdns_api_key = {{ certbot_dns_api_key }}
+    tags: [ haproxy-certbot, haproxy-install ]
+
+  - name: "request or renew certificate"
+    shell: "{{ certbot_command }} {{ item.domains | join(',') }}"
+    with_items: "{{ certbot_ssl_domains }}"
+    register: newcertrequest
+    changed_when: "'no action taken.' not in newcertrequest.stdout"
+    tags: [ haproxy-certbot ]
+
+  - name: "get list of all certificates"
+    shell: certbot certificates 2>/dev/null
+    register: certlist
+    changed_when: false
+    tags: [ haproxy-certbot ]
+
+  - set_fact:
+      parsed_domainlist: "{{ certlist.stdout | regex_findall('.*Name: (.*)$\n^\\s+Domains: (.*)$\n.*\n^.*Path: (.*)$\n^.*Path: (.*)$', multiline=True, ignorecase=True) | list }}"
+    changed_when: false
+    tags: [ haproxy-certbot ]
+
+  - name: "create haproxy PEM files (cert + key)"
+    shell: >-
+      cat {{ item[2] }} {{ item[3] }} > /etc/ssl/pem/{{ item[0] }}.pem
+    loop: "{{ parsed_domainlist }}"
+    changed_when: false
+    tags: [ haproxy-certbot ]
+
+  - name: "Generate a crt-list.txt file for SSL SNI"
+    template:
+      src: etc/haproxy/crt-list.txt.j2
+      dest: /etc/haproxy/crt-list.txt
+    tags: [ haproxy-certbot ]
+
+  - name: "Create bind_ssl variable for haproxy.cfg"
+    set_fact:
+      certbot_bind_ssl: "ssl crt-list /etc/haproxy/crt-list.txt"
+    changed_when: false
+    tags: [ haproxy-certbot ]
+
+  - name: "Configuring HAproxy with Let's Encrypt SSL"
+    template:
+      src=etc/haproxy/haproxy.cfg.j2
+      dest=/etc/haproxy/haproxy.cfg
+      validate='haproxy -f %s -c'
+    notify: restart haproxy
+#    notify: reload haproxy  # does not update the cert!?
+    tags: [ haproxy-certbot ]
+

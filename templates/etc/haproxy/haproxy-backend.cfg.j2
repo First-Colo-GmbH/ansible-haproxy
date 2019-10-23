@@ -2,9 +2,6 @@
 ##########################
 #        BACKENDS        #
 ##########################
-backend be_dead_for_acme_http01
-	mode http
-	server be_dead_for_acme_http01 127.0.0.1:65535
 
     {% for dict_item in haproxy_backend %}
         {% for name, value in dict_item.items() %}

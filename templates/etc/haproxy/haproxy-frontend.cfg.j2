@@ -39,10 +39,6 @@ frontend {{ name }}
     acl             {{ acl }}
                 {% endfor %}
             {% endif %}
-            {% if value.letsencrypt is defined and value.letsencrypt %}
-    acl             url_acme_http01 path_beg /.well-known/acme-challenge/
-    http-request    use-service lua.acme-http01 if METH_GET url_acme_http01
-            {% endif %}
             {% if value.monitor_uri is defined %}
     monitor-uri     {{ value.monitor_uri }}
             {% endif %}
@@ -74,6 +70,7 @@ frontend {{ name }}
             {% if value.rspadds is defined %}
                 {% for rspadd in value.rspadds %}
     rspadd          "{{ rspadd }}"
+                {% endfor %}
             {% endif %}
             {% if value.rate_limit_sessions is defined %}
     rate-limit      sessions {{ value.rate_limit_sessions }}
@@ -87,9 +84,6 @@ frontend {{ name }}
                 {% for redirect in value.redirects %}
     redirect        {{ redirect }}
                 {% endfor %}
-            {% endif %}
-            {% if value.letsencrypt is defined and value.letsencrypt %}
-    use_backend     be_dead_for_acme_http01 if url_acme_http01
             {% endif %}
             {% if value.use_backends is defined %}
                 {% for use_backend in value.use_backends %}
