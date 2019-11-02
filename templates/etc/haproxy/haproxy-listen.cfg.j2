@@ -24,6 +24,9 @@ listen {{ name }}
             {% if value.bind_process is defined %}
     bind-process    {{ value.bind_process | join(' ') }}
             {% endif %}
+            {% if value.source is defined %}
+    source          {{ value.source }}
+            {% endif %}
             {% if value.balance is defined %}
     balance         {{ value.balance }}
             {% endif %}

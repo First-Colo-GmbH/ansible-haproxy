@@ -19,7 +19,7 @@
     pip:
       name: "{{ item }}"
       state: latest
-    with_items:
+    loop:
       - certbot
       - certbot-dns-powerdns
     tags: [ haproxy-certbot, haproxy-install ]
