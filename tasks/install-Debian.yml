@@ -8,7 +8,7 @@
 - name: "Installing HAproxy from {{ haproxy_release | default(ansible_distribution_release) }}"
   apt:
     name: haproxy
-    state: latest
     update_cache: True
     cache_valid_time: 3600
     default_release: "{{ haproxy_release | default(ansible_distribution_release) }}"
+

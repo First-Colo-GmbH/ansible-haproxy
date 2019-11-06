@@ -12,13 +12,11 @@
   - name: "Install python3-pip"
     apt:
       name: python3-pip
-      state: latest
     tags: [ haproxy-certbot, haproxy-install ]
 
   - name: "Install certbot + dns plugin"
     pip:
       name: "{{ item }}"
-      state: latest
     loop:
       - certbot
       - certbot-dns-powerdns
@@ -39,7 +37,7 @@
     with_items: "{{ certbot_ssl_domains }}"
     register: newcertrequest
     changed_when: "'no action taken.' not in newcertrequest.stdout"
-    tags: [ haproxy-certbot ]
+    tags: [ haproxy-certbot, skip_ansible_lint ]
 
   - name: "get list of all certificates"
     shell: certbot certificates 2>/dev/null
@@ -47,8 +45,12 @@
     changed_when: false
     tags: [ haproxy-certbot ]
 
-  - set_fact:
-      parsed_domainlist: "{{ certlist.stdout | regex_findall('.*Name: (.*)$\n^\\s+Domains: (.*)$\n.*\n^.*Path: (.*)$\n^.*Path: (.*)$', multiline=True, ignorecase=True) | list }}"
+  - name: "parse domainlist from certbot output"
+    set_fact:
+      parsed_domainlist: >
+        {{ certlist.stdout
+        | regex_findall('.*Name: (.*)$\n^\\s+Domains: (.*)$\n.*\n^.*Path: (.*)$\n^.*Path: (.*)$', multiline=True, ignorecase=True)
+        | list }}
     changed_when: false
     tags: [ haproxy-certbot ]
 

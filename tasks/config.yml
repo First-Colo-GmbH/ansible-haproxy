@@ -11,15 +11,14 @@
   - name: "Install ssl-cert package"
     apt:
       name: ssl-cert
-      state: latest
     when: ansible_os_family == 'Debian'
     tags: [ haproxy-certbot ]
 
   - name: "Generate snakeoil certificate"
-    shell: /usr/sbin/make-ssl-cert generate-default-snakeoil 
+    shell: /usr/sbin/make-ssl-cert generate-default-snakeoil
     args:
       creates: /etc/ssl/certs/ssl-cert-snakeoil.pem
-    tags: [ haproxy-certbot ]
+    tags: [ haproxy-certbot, skip_ansible_lint ]
 
   - name: "Create PEM directory"
     file:
@@ -39,14 +38,14 @@
       haproxy_ssl_certificate: "/etc/ssl/pem/ssl-cert-snakeoil.pem"
     tags: [ haproxy-certbot ]
 
-  when: stat_ssl_crt.stat.exists == False
+  when: not stat_ssl_crt.stat.exists
 
 - name: "Generate DH4096 file"
   shell: openssl dhparam -out /etc/ssl/dh4096.pem 4096
   args:
     creates: /etc/ssl/dh4096.pem
-  when: haproxy_ssl_generate_dh4096 == True
-  tags: [ haproxy-certbot ]
+  when: haproxy_ssl_generate_dh4096
+  tags: [ haproxy-certbot, skip_ansible_lint ]
 
 - name: Configuring HAproxy
   template:
