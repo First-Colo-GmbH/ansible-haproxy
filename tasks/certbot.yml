@@ -45,14 +45,25 @@
     changed_when: false
     tags: [ haproxy-certbot ]
 
+  - name: "print certlist"
+    debug:
+      var: certlist
+      verbosity: 1
+
   - name: "parse domainlist from certbot output"
     set_fact:
-      parsed_domainlist: >
-        {{ certlist.stdout
-        | regex_findall('.*Name: (.*)$\n^\\s+Domains: (.*)$\n.*\n^.*Path: (.*)$\n^.*Path: (.*)$', multiline=True, ignorecase=True)
-        | list }}
+      parsed_domainlist: "{{ certlist.stdout | regex_findall('.*Name: (.*)$\n^\\s+Domains: (.*)$\n.*\n^.*Path: (.*)$\n^.*Path: (.*)$', multiline=True, ignorecase=True) | list }}"
     changed_when: false
     tags: [ haproxy-certbot ]
+
+  - name: "print parsed_domainlist"
+    debug:
+      var: parsed_domainlist
+      verbosity: 1
+
+  - fail:
+      msg: "There seems to be an error with the certbot output parsing into parsed_domainlist variable"
+    when: persed_domainlist | length == 0
 
   - name: "create haproxy PEM files (cert + key)"
     shell: >-
@@ -65,19 +76,20 @@
     template:
       src: etc/haproxy/crt-list.txt.j2
       dest: /etc/haproxy/crt-list.txt
+      backup: yes
     tags: [ haproxy-certbot ]
 
-  - name: "Create bind_ssl variable for haproxy.cfg"
-    set_fact:
-      certbot_bind_ssl: "ssl crt-list /etc/haproxy/crt-list.txt"
-    changed_when: false
-    tags: [ haproxy-certbot ]
+#  - name: "Create bind_ssl variable for haproxy.cfg"
+#    set_fact:
+#      certbot_bind_ssl: "ssl crt-list /etc/haproxy/crt-list.txt"
+#    changed_when: false
+#    tags: [ haproxy-certbot ]
 
   - name: "Configuring HAproxy with Let's Encrypt SSL"
     template:
-      src=etc/haproxy/haproxy.cfg.j2
-      dest=/etc/haproxy/haproxy.cfg
-      validate='haproxy -f %s -c'
+      src: etc/haproxy/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+      validate: 'haproxy -f %s -c'
     notify: restart haproxy
 #    notify: reload haproxy  # does not update the cert!?
     tags: [ haproxy-certbot ]

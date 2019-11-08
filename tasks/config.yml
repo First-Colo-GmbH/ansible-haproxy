@@ -51,6 +51,7 @@
   template:
     src: etc/haproxy/haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
-#    validate: 'haproxy -f %s -c'
+    validate: 'haproxy -f %s -c'
   notify: reload haproxy
+  ignore_errors: True
 
