@@ -63,7 +63,7 @@
 
   - fail:
       msg: "There seems to be an error with the certbot output parsing into parsed_domainlist variable"
-    when: persed_domainlist | length == 0
+    when: parsed_domainlist | length == 0
 
   - name: "create haproxy PEM files (cert + key)"
     shell: >-
