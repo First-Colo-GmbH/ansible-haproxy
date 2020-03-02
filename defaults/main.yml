@@ -24,7 +24,7 @@ haproxy_global_gid:
 haproxy_global_pidfile: /var/run/haproxy.pid
 haproxy_global_ca_base:
 haproxy_global_crt_base:
-haproxy_global_ssl_options: no-sslv3 no-tls-tickets ssl-min-ver TLSv1.2
+haproxy_global_ssl_options: no-tls-tickets ssl-min-ver TLSv1.2
 haproxy_global_ssl_ciphers: EECDH+AESGCM:EDH+AESGCM
 haproxy_global_ssl_server_verify: none
 haproxy_global_stats: []
