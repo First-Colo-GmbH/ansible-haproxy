@@ -39,3 +39,6 @@ defaults
 {% if haproxy_default_mode is defined %}
     mode        {{ haproxy_default_mode }}
 {% endif %}
+{% if haproxy_default_source is defined %}
+    source      {{ haproxy_default_source }}
+{% endif %}

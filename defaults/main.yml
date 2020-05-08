@@ -24,15 +24,16 @@ haproxy_global_gid:
 haproxy_global_pidfile: /var/run/haproxy.pid
 haproxy_global_ca_base:
 haproxy_global_crt_base:
-haproxy_global_ssl_options:
-haproxy_global_ssl_ciphers:
-haproxy_global_ssl_server_verify:
+haproxy_global_ssl_options: no-tls-tickets ssl-min-ver TLSv1.2
+haproxy_global_ssl_ciphers: EECDH+AESGCM:EDH+AESGCM
+haproxy_global_ssl_server_verify: none
 haproxy_global_stats: []
 haproxy_global_description:
 haproxy_global_ulimit_n:
 haproxy_global_logs:
   - 127.0.0.1    local0 debug
-haproxy_global_nbproc: 2
+haproxy_global_nbthread: 4
+haproxy_global_nbproc: 1
 haproxy_global_cpu_maps:
   - 1 0
   - 2 1
@@ -43,11 +44,12 @@ haproxy_global_tunes:
 haproxy_default_logs:
   - global
 haproxy_default_mode:
+#haproxy_default_source:
 haproxy_default_maxconn: 4000
 haproxy_default_fullconn:
 haproxy_default_options:
   - dontlognull
-  - forwardfor
+#  - forwardfor
   - http-server-close
 haproxy_default_retries: 3
 haproxy_default_timeouts:
@@ -70,8 +72,9 @@ haproxy_stats: true
 haproxy_stats_address: '*'
 haproxy_stats_port: 9001
 haproxy_stats_auth: true
+haproxy_stats_ssl_append: ''
 haproxy_stats_user: haproxy-stats
-haproxy_stats_password: B1Gp4sSw0rD!!
+haproxy_stats_password: "{{ lookup('password', inventory_dir + '/storage/' + ansible_fqdn + '/haproxy_stats_password length=20') }}"
 haproxy_stats_uri: /
 haproxy_stats_options:
   - refresh 20s
@@ -81,9 +84,19 @@ haproxy_stats_options:
 
 # SSL
 haproxy_ssl_certificate: /etc/ssl/uoi.io/uoi.io.pem
-haproxy_ssl_options: no-sslv3 no-tls-tickets force-tlsv12
-haproxy_ssl_ciphers: AES128+EECDH:AES128+EDH
-haproxy_ssl: 'ssl crt {{ haproxy_ssl_certificate }} ciphers {{ haproxy_ssl_ciphers }} {{ haproxy_ssl_options }}'
+haproxy_ssl: 'ssl crt {{ haproxy_ssl_certificate }}'
+haproxy_ssl_generate_dh4096: true
+
+# Let's Encrypt
+haproxy_certbot: false
+certbot_ssl_domains: {}
+certbot_account_email: "admin@domain.tdl"
+certbot_directory: "https://acme-staging-v02.api.letsencrypt.org/directory" 
+#certbot_directory: "https://acme-v02.api.letsencrypt.org/directory"
+certbot_remaining_days: 14
+
+# Userlist
+haproxy_userlist: []
 
 # Frontend
 haproxy_frontend: []

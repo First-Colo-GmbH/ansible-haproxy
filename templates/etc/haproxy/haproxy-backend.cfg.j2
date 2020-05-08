@@ -2,6 +2,7 @@
 ##########################
 #        BACKENDS        #
 ##########################
+
     {% for dict_item in haproxy_backend %}
         {% for name, value in dict_item.items() %}
 backend {{ name }}
@@ -10,6 +11,9 @@ backend {{ name }}
             {% endif %}
             {% if value.description is defined %}
     description     {{ value.description }}
+            {% endif %}
+            {% if value.source is defined %}
+    source          {{ value.source }}
             {% endif %}
             {% if value.balance is defined %}
     balance         {{ value.balance }}
@@ -38,14 +42,14 @@ backend {{ name }}
     http-request    {{ http_request }}
                 {% endfor %}
             {% endif %}
+            {% if value.http_responses is defined %}
+                {% for http_response in value.http_responses %}
+    http-response   {{ http_response }}
+                {% endfor %}
+            {% endif %}
             {% if value.tcp_requests is defined %}
                 {% for tcp_request in value.tcp_requests %}
     tcp-request     {{ tcp_request }}
-                {% endfor %}
-            {% endif %}
-            {% if value.http_responses is defined %}
-                {% for http_response in value.http_responses %}
-    http-response    {{ http_response }}
                 {% endfor %}
             {% endif %}
             {% if value.tcp_responses is defined %}

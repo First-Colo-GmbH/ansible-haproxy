@@ -5,7 +5,9 @@ global
     chroot     {{ haproxy_global_chroot | default('/var/lib/haproxy') }}
 {% if haproxy_global_daemon %}
     daemon
-    {% if haproxy_global_nbproc %}
+    {% if haproxy_global_nbthread %}
+    nbthread   {{ haproxy_global_nbthread }}
+    {% elif haproxy_global_nbproc %}
     nbproc     {{ haproxy_global_nbproc }}
        {% if haproxy_global_cpu_maps %}
            {% for cpu_map in haproxy_global_cpu_maps %}
@@ -61,4 +63,7 @@ global
     {{ key }}    {{ value }}
         {% endfor %}
     {% endfor %}
+{% endif %}
+{% if haproxy_ssl_generate_dh4096 %}
+    ssl-dh-param-file /etc/ssl/dh4096.pem
 {% endif %}

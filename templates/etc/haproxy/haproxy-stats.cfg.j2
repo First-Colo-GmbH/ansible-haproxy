@@ -3,7 +3,7 @@
 #         STATS          #
 ##########################
 listen stats
-    bind       {{ haproxy_stats_address }}:{{ haproxy_stats_port }}
+    bind       {{ haproxy_stats_address }}:{{ haproxy_stats_port }} {{ haproxy_stats_ssl_append }}
     mode       http
     maxconn    10
     stats      enable

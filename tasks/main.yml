@@ -9,6 +9,7 @@
     - haproxy-selinux
     - haproxy-config
     - haproxy-sysctl
+    - haproxy-certbot
 
 - include: install.yml
   tags: [ haproxy, haproxy-install ]
@@ -26,3 +27,8 @@
 
 - include: sysctl.yml
   tags: [ haproxy, haproxy-sysctl ]
+
+- include: certbot.yml
+  tags: [ haproxy ]
+  when: haproxy_certbot is defined and haproxy_certbot
+

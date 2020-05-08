@@ -10,7 +10,7 @@ This role provides support for the installation of HAproxy on current distributi
  - RedHat **7.x**
  - Fedora **29**
  - Ubuntu **14.xx** / **15.xx** / **16.xx** / **18.04**
- - Debian **7.x** / **8.x** / **9.x**
+ - Debian **7.x** / **8.x** / **9.x** / **10.x**
 
 The role allows you to configure multiple sections of HAproxy:
  
@@ -227,6 +227,28 @@ haproxy_peer:
         - lb224 10.0.0.224:1024
         - lb225 10.0.0.225:1024
 ```
+```
+haproxy_userlist:
+  - auth_list1:
+     groups:
+      - myfirstgroup:
+         - "firstuser"
+         - "seconduser"
+      - mysecondgroup:
+         - "thirduser"
+     users:
+      - name: "firstuser"
+        insecure_password: "veryinsecure"
+      - name: "seconduser"
+        insecure_password: "veryinsecure"
+      - name: "thirduser"
+        password: "$6$k6y3o...<crypt secure>...Rv6J.C0/D7cV91"
+      - name: "fourthuser"
+        password: "$6$k6y3o...<crypt secure>...Rv6J.C0/D7cV91"
+        groups: 
+          - "myfirstgroup"
+          - "mysecondgroup"
+```
 
 Testing
 -------
@@ -250,4 +272,6 @@ Apache
 Author Information
 ------------------
 
-This role was created in 2016 by Gaëtan Trellu (goldyfruit).
+* This role was created in 2016 by Gaëtan Trellu (goldyfruit).
+* [Martin Verges](https://github.com/MartinVerges) added Let's Encrypt Support and some improvements.
+

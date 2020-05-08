@@ -1,0 +1,3 @@
+{% for item in parsed_domainlist %}
+/etc/ssl/pem/{{ item[0] }}.pem {{ item[1] }}
+{% endfor %}

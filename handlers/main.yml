@@ -9,3 +9,37 @@
   service:
     name: haproxy
     state: reloaded
+
+- name: "refresh crt-list"
+  block:
+  - name: "get list of all certificates"
+    shell: certbot certificates 2>/dev/null
+    register: certlist
+    changed_when: false
+
+  - debug:
+      var: certlist
+
+  - name: "parse domainlist from certbot output"
+    set_fact:
+      parsed_domainlist: >
+        {{ certlist.stdout
+        | regex_findall('.*Name: (.*)$\n^\\s+Domains: (.*)$\n.*\n^.*Path: (.*)$\n^.*Path: (.*)$', multiline=True, ignorecase=True)
+        | list }}
+    changed_when: false
+
+  - debug:
+      var: parsed_domainlist
+
+  - name: "create haproxy PEM files (cert + key)"
+    shell: >-
+      cat {{ item[2] }} {{ item[3] }} > /etc/ssl/pem/{{ item[0] }}.pem
+    loop: "{{ parsed_domainlist }}"
+    changed_when: false
+
+  - name: "Generate a crt-list.txt file for SSL SNI"
+    template:
+      src: etc/haproxy/crt-list.txt.j2
+      dest: /etc/haproxy/crt-list.txt
+
+
