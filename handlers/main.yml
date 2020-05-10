@@ -1,5 +1,9 @@
 ---
 # file: roles/haproxy/handlers/main.yml
+- name: fetch OCSP stapling info
+  shell: /usr/local/bin/haproxy-ocsp-fetch
+  failed_when: false
+
 - name: restart haproxy
   service:
     name: haproxy

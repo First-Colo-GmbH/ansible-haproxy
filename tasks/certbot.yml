@@ -37,6 +37,7 @@
     with_items: "{{ certbot_ssl_domains }}"
     register: newcertrequest
     changed_when: "'no action taken.' not in newcertrequest.stdout"
+    notify: fetch OCSP stapling info
     tags: [ haproxy-certbot, skip_ansible_lint ]
 
   - name: "get list of all certificates"
@@ -77,6 +78,7 @@
       src: etc/haproxy/crt-list.txt.j2
       dest: /etc/haproxy/crt-list.txt
       backup: yes
+    notify: fetch OCSP stapling info
     tags: [ haproxy-certbot ]
 
 #  - name: "Create bind_ssl variable for haproxy.cfg"

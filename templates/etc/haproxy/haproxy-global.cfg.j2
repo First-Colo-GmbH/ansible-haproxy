@@ -38,6 +38,9 @@ global
 {% if haproxy_global_ssl_ciphers %}
     ssl-default-bind-ciphers    {{ haproxy_global_ssl_ciphers }}
 {% endif %}
+{% if haproxy_global_ssl_ciphersuites %}
+    ssl-default-bind-ciphersuites {{ haproxy_global_ssl_ciphersuites }}
+{% endif %}
 {% if haproxy_global_ssl_server_verify %}
     ssl-server-verify           {{ haproxy_global_ssl_server_verify }}
 {% endif %}

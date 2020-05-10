@@ -26,6 +26,7 @@ haproxy_global_ca_base:
 haproxy_global_crt_base:
 haproxy_global_ssl_options: no-tls-tickets ssl-min-ver TLSv1.2
 haproxy_global_ssl_ciphers: EECDH+AESGCM:EDH+AESGCM
+haproxy_global_ssl_ciphersuites: "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256"
 haproxy_global_ssl_server_verify: none
 haproxy_global_stats: []
 haproxy_global_description:
@@ -86,6 +87,7 @@ haproxy_stats_options:
 haproxy_ssl_certificate: /etc/ssl/uoi.io/uoi.io.pem
 haproxy_ssl: 'ssl crt {{ haproxy_ssl_certificate }}'
 haproxy_ssl_generate_dh4096: true
+haproxy_ocsp_cron_email: root
 
 # Let's Encrypt
 haproxy_certbot: false

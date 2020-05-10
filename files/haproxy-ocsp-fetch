@@ -1,0 +1,60 @@
+#!/bin/bash
+shopt -s nullglob
+
+main() {
+        CERTDIR=/etc/ssl/pem
+        END="-----END CERTIFICATE-----"
+        UPDATED=0
+        FAILED=0
+
+        for CERT in "$CERTDIR/"*.pem ; do
+                # 1. Ignore (and complain about) expired certificates
+                if ! openssl x509 -in "$CERT" -noout -checkend 0 >/dev/null ; then
+                        echo "Certificate $CERT has expired"
+                        FAILED=1
+                        continue
+                fi
+
+                # 2. Ignore certificates without chain
+                if [ $( grep -c -- "$END" "$CERT" ) -lt 2 ] ; then
+                        continue
+                fi
+
+                # 3. Extract and validate certificate's OCSP URI
+                OCSP_URI=$( openssl x509 -in "$CERT" -noout -ocsp_uri )
+
+                case "$OCSP_URI" in
+                        http://*|https://*)
+                                ;;
+                        "")
+                                continue
+                                ;;
+                        *)
+                                echo "Invalid OCSP URI $OCSP_URI in certificate $CERT"
+                                FAILED=1
+                                continue
+                                ;;
+                esac
+
+                # 4. Obtain a fresh OCSP response
+                if ! RESP=$( openssl ocsp -timeout 15 -issuer <( sed -e "1,/$END/d" "$CERT" ) -cert "$CERT" \
+                                -no_nonce -url "$OCSP_URI" -respout "$CERT.ocsp.tmp" 2>&1 ) \
+                                || ! echo "$RESP" | grep -q "Response verify OK" ; then
+                        echo "OCSP request failed for $CERT: $RESP"
+                        FAILED=1
+                        rm -f "$CERT.ocsp.tmp"
+                        continue
+                fi
+
+                # 5. Move the response to its final location
+                mv "$CERT.ocsp.tmp" "$CERT.ocsp" || FAILED=1
+                UPDATE=1
+        done
+
+        if [ "$UPDATE" = 1 ] ; then
+                systemctl -q is-active haproxy && systemctl reload haproxy
+        fi
+
+}
+
+main "$@" ; exit $FAILED
