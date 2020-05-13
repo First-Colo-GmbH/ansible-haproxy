@@ -26,7 +26,8 @@ haproxy_global_ca_base:
 haproxy_global_crt_base:
 haproxy_global_ssl_options: no-tls-tickets ssl-min-ver TLSv1.2
 haproxy_global_ssl_ciphers: EECDH+AESGCM:EDH+AESGCM
-haproxy_global_ssl_ciphersuites: "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256"
+#haproxy_global_ssl_ciphersuites: "TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256"
+haproxy_global_ssl_ciphersuites: ""
 haproxy_global_ssl_server_verify: none
 haproxy_global_stats: []
 haproxy_global_description:
